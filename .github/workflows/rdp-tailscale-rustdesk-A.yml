@@ -239,40 +239,52 @@ jobs:
           python -m pip install --force-reinstall pyautogui pynput pillow
           python -c "import pyautogui, pynput, PIL; print('Python libs OK')"
 
-      - name: Install Roblox Studio
+
+      - name: Install Roblox Studio (Debug)
         run: |
-          $installer = "$env:TEMP\RobloxStudioInstaller.exe"
+          $installer = "$env:TEMP\RobloxStudioLauncherBeta.exe"
 
           Write-Host "Downloading Roblox Studio..."
-
           Invoke-WebRequest -Uri "https://setup.rbxcdn.com/RobloxStudioLauncherBeta.exe" -OutFile $installer
 
-          Write-Host "Installing..."
+          Write-Host "Installer downloaded:"
+          Get-Item $installer | Format-List *
 
-          Start-Process $installer -Wait
+          Write-Host "Running installer..."
+          Start-Process -FilePath $installer -Wait
 
-          $timeout = (Get-Date).AddMinutes(5)
+          Write-Host "Searching for Roblox Studio..."
 
-          do {
-              Start-Sleep -Seconds 5
-
-              $studio = Get-ChildItem "$env:LOCALAPPDATA\Roblox\Versions" `
-                  -Recurse `
-                  -Filter RobloxStudioBeta.exe `
-                  -ErrorAction SilentlyContinue |
-                  Sort-Object LastWriteTime -Descending |
-                  Select-Object -First 1
-
-          } while (-not $studio -and (Get-Date) -lt $timeout)
-
-          if (-not $studio) {
-              throw "Roblox Studio installation timed out."
+          Write-Host "--- LOCALAPPDATA ---"
+          if (Test-Path "$env:LOCALAPPDATA\Roblox") {
+              Get-ChildItem "$env:LOCALAPPDATA\Roblox" -Recurse -ErrorAction SilentlyContinue
+          } else {
+              Write-Host "No Roblox folder in LOCALAPPDATA."
           }
 
-          Write-Host "Launching Roblox Studio..."
-          Start-Process $studio.FullName
+          Write-Host "--- PROGRAM FILES ---"
+          Get-ChildItem "$env:ProgramFiles" -Recurse -Filter RobloxStudioBeta.exe -ErrorAction SilentlyContinue
+
+          Write-Host "--- PROGRAM FILES (x86) ---"
+          Get-ChildItem "${env:ProgramFiles(x86)}" -Recurse -Filter RobloxStudioBeta.exe -ErrorAction SilentlyContinue
+
+          $studio = Get-ChildItem "$env:LOCALAPPDATA\Roblox\Versions" `
+              -Recurse `
+              -Filter RobloxStudioBeta.exe `
+              -ErrorAction SilentlyContinue |
+              Sort-Object LastWriteTime -Descending |
+              Select-Object -First 1
+
+          if ($studio) {
+              Write-Host "Found Roblox Studio:"
+              Write-Host $studio.FullName
+
+              Start-Process $studio.FullName
+          } else {
+              Write-Host "Roblox Studio was NOT found."
+          }
       
-    
+
       - name: Install RustDesk
         run: |
           $rdExe = "C:\Program Files\RustDesk\rustdesk.exe"
