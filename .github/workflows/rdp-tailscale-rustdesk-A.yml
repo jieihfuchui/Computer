@@ -233,7 +233,7 @@ jobs:
           Enable-NetFirewallRule -DisplayGroup "Remote Desktop" | Out-Null
           Write-Host "RDP ready. user=$u pass=$p host=$env:TS_HOSTNAME ip=$env:TAILSCALE_IP"
 
-            - name: Install Python libs (pyautogui/pynput/pillow)
+      - name: Install Python libs (pyautogui/pynput/pillow)
         run: |
           python -m pip install --upgrade pip
           python -m pip install --force-reinstall pyautogui pynput pillow
@@ -271,12 +271,6 @@ jobs:
 
           Write-Host "Launching Roblox Studio..."
           Start-Process $studio.FullName
-
-      - name: Install RustDesk
-        run: |
-          $rdExe = "C:\Program Files\RustDesk\rustdesk.exe"
-          ...
-          
       
     
       - name: Install RustDesk
