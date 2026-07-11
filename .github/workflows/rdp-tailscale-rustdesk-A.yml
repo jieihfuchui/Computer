@@ -238,7 +238,50 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --force-reinstall pyautogui pynput pillow
           python -c "import pyautogui, pynput, PIL; print('Python libs OK')"
+      - name: Install Roblox Studio
+  run: |
+    Write-Host "Checking if winget is available..."
 
+    $winget = Get-Command winget -ErrorAction SilentlyContinue
+
+    if ($winget) {
+      Write-Host "Winget found. Installing Roblox Studio..."
+      try {
+        winget install --id Roblox.RobloxStudio -e --silent --accept-package-agreements --accept-source-agreements
+      }
+      catch {
+        Write-Host "Winget install failed. Falling back to official installer..."
+      }
+    }
+
+    $studio = Get-ChildItem "$env:LOCALAPPDATA\Roblox\Versions" -Recurse -Filter RobloxStudioBeta.exe -ErrorAction SilentlyContinue
+
+    if (-not $studio) {
+      Write-Host "Downloading official Roblox Studio installer..."
+
+      $url = "https://setup.rbxcdn.com/RobloxStudioLauncherBeta.exe"
+      $installer = "$env:TEMP\RobloxStudioLauncherBeta.exe"
+
+      Invoke-WebRequest -Uri $url -OutFile $installer
+
+      Start-Process $installer -Wait
+
+      Start-Sleep -Seconds 20
+    }
+
+    $studio = Get-ChildItem "$env:LOCALAPPDATA\Roblox\Versions" -Recurse -Filter RobloxStudioBeta.exe |
+      Sort-Object LastWriteTime -Descending |
+      Select-Object -First 1
+
+    if ($studio) {
+      Write-Host "Launching Roblox Studio..."
+      Start-Process $studio.FullName
+    }
+    else {
+      Write-Error "Roblox Studio installation failed."
+      exit 1
+    }
+    
       - name: Install RustDesk
         run: |
           $rdExe = "C:\Program Files\RustDesk\rustdesk.exe"
