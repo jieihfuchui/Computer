@@ -239,38 +239,6 @@ jobs:
           python -m pip install --force-reinstall pyautogui pynput pillow
           python -c "import pyautogui, pynput, PIL; print('Python libs OK')"
 
-
-      - name: Install Roblox Studio (Debug)
-        run: |
-          $installer = "$env:TEMP\RobloxStudioLauncherBeta.exe"
-          Write-Host "Downloading Roblox Studio..."
-          Invoke-WebRequest -Uri "https://setup.rbxcdn.com/RobloxStudioLauncherBeta.exe" -OutFile $installer
-
-          Write-Host "Launching installer (not waiting)..."
-          $proc = Start-Process -FilePath $installer -PassThru
-
-          Write-Host "Giving it time to install files..."
-          Start-Sleep -Seconds 60
-
-          Write-Host "Killing installer/launcher process tree..."
-          Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
-          Get-Process RobloxStudioBeta -ErrorAction SilentlyContinue | Stop-Process -Force
-
-          Write-Host "Searching for installed files..."
-          $studio = Get-ChildItem "$env:LOCALAPPDATA\Roblox\Versions" `
-              -Recurse -Filter RobloxStudioBeta.exe -ErrorAction SilentlyContinue |
-              Sort-Object LastWriteTime -Descending |
-              Select-Object -First 1
-
-          if ($studio) {
-              Write-Host "Found Roblox Studio at:"
-              Write-Host $studio.FullName
-          } else {
-              Write-Host "Roblox Studio was NOT found after install attempt."
-              exit 1
-          }
-      
-
       - name: Install RustDesk
         run: |
           $rdExe = "C:\Program Files\RustDesk\rustdesk.exe"
